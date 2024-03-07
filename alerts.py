@@ -9,13 +9,13 @@ Adding a new alert:
     - edit alert.json file
     - modify get_message() method if needed
     - create <new>alerts.py (e.g. radalerts.py, dumpalerts.py) and
-      add method to violations.py which will fetch the current value
-      or data for veryfication
+      add a new method to radpars.py (or create dumpspar.py in the
+      future) which will fetch the current value/data for verification
 
 Disabling an alert:
-    - touch <name>.logfile in the working directory to disable alerts
-      for 24h or extend the default 24h time period during which an alert
-      is disabled after being triggered
+    - touch <name>.log in the working directory to disable alerts for
+      24 hours or extend the default 24h time period during which an
+      alert is disabled after being triggered
     - or edit alerts.json and change manual_disable from 0 to 1.
 """
 
