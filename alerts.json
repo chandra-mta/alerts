@@ -1,0 +1,60 @@
+{
+    "radiation": [
+        {
+            "name": "ace_12h_status",
+            "type": "bool",
+            "category": "warning",
+            "lo": 0,
+            "hi": 0,
+            "triggered": 0,
+            "blackout_tstart": 24,
+            "blackout_tstop": 8,
+            "manual_disable": 0,
+            "val": 1.0,
+            "action": "Radiation team should investigate",
+            "url": "http://cxc.harvard.edu/mta/RADIATION_new/ACE/ace.html"
+        },
+        {
+            "name": "acep3_2h_fluence",
+            "type": "upper",
+            "category": "caution",
+            "lo": 0,
+            "hi": 3.6e8,
+            "triggered": 0,
+            "blackout_tstart": 24,
+            "blackout_tstop": 5,
+            "manual_disable": 0,
+            "val": 0.0,
+            "action": "Radiation team should investigate",
+            "url": "http://cxc.harvard.edu/mta/RADIATION_new/ACE/ace.html"
+        },
+        {
+            "name": "acep3_2h_fluence",
+            "type": "upper",
+            "category": "warning",
+            "lo": 0,
+            "hi": 1.0e9,
+            "triggered": 0,
+            "blackout_tstart": 24,
+            "blackout_tstop": 5,
+            "manual_disable": 0,
+            "val": 0.0,
+            "action": "Radiation team should investigate",
+            "url": "http://cxc.harvard.edu/mta/RADIATION_new/ACE/ace.html"
+        }, 
+        {
+            "name": "hrc_shield",
+            "type": "upper",
+            "category": "warning",
+            "lo": 0,
+            "hi": 60000.0,
+            "triggered": 0,
+            "blackout_tstart": 24,
+            "blackout_tstop": 0,
+            "manual_disable": 0,
+            "val": 0.0,
+            "action": "Radiation team should investigate",
+            "url": "https://cxc.cfa.harvard.edu/mta/RADIATION_new/GOES/goes_pchan_p.html"
+        }
+    ]
+}
