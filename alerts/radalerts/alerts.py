@@ -1,7 +1,7 @@
 #!/usr/bin/env /proj/sot/ska3/flight/bin/python
 
 """
-A package with MTA Alert class and related methods. Current application
+A package with MTA RadAlert class and related methods. Current application
 is for radiation alerts. It could be used with dumps monitoring and
 realtime alerts in the future.
 
@@ -31,9 +31,9 @@ from cxotime import CxoTime
 #PATH = f"{HOME}/git/radalerts"
 
 
-class Alert(object):
+class RadAlert(object):
     """
-    Alert object
+    RadAlert object
     """
 
     def __init__(self,
@@ -91,7 +91,7 @@ class Alert(object):
             
     def get_message(self):
         """
-        Alert message
+        RadAlert message
         """
             
         if self.type == 'bool':
@@ -199,7 +199,7 @@ def trigger_alerts(a):
         if v:
             if a['triggered']:
                 # alerts should not be enabled yet
-                raise ValueError(f'Alert {name} should not be triggered before the check')
+                raise ValueError(f'RadAlert {name} should not be triggered before the check')
 
             a['violation_type'] = k
             a['triggered'] = True
@@ -210,7 +210,7 @@ def trigger_alerts(a):
 def send_alert(a, mode, email):
     """
     """
-    alert = Alert(mode=mode,
+    alert = RadAlert(mode=mode,
                   name=a['name'],
                   type_=a['type'],
                   category=a['category'],

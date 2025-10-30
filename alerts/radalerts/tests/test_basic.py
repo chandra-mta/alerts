@@ -15,7 +15,7 @@ from ..radpars import *
 
 TESTMODE = 'test'
 
-# Alerts with violations
+# RadAlerts with violations
 RADALERTS = [{"name": "bool",
               "type": "bool",
               "category": "warning",
@@ -121,7 +121,7 @@ RADALERTS = [{"name": "bool",
 
 def test_alert_object(email):
 
-    alert = Alert(mode=TESTMODE,
+    alert = RadAlert(mode=TESTMODE,
                   name='test_alert_object',
                   type_="lower",
                   category="caution",

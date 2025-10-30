@@ -7,7 +7,7 @@ Radiation monitoring for Chandra (GOES HRC proxy and ACE)
 import os
 import numpy as np
 import argparse
-from .alerts import Alert
+from .alerts import RadAlert
 from .alerts import get_current_hour, trigger_alerts, send_alert
 from .radpars import get_ace_p3, get_hrc_shield_proxy
 
