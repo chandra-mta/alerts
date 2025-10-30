@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE
 """
-Internal module for handling intermediate files storing spacecraft data,
-and logging the status of alerting
+Internal module for handling intermediate telemetry files storing spacecraft data.
 """
 import os
 import glob
 from datetime import datetime
-import core
+from . import core
 from numpy.ma import masked
 from astropy.table import Table
 
@@ -114,3 +113,22 @@ def get_tl_files(CONFIG):
         return process
     else:
         return current
+
+def latest_telem_value(telem_table):
+    """
+    Reorient a telemetry astropy table into a hash-table of the most recent msid values.
+    """
+    _msids = [_ for _ in telem_table.columns if _ != "TIME"]
+    dataset = {}
+    for _msid in _msids:
+        _idx = -1
+        _col = telem_table[_msid].tolist()
+        _stop = -len(_col)
+        while _idx > _stop: #: Negative -> Reverse Check
+            if _col[_idx] is None:
+                _idx = _idx - 1
+            else:
+                dataset[_msid] = {'cxotime': telem_table['TIME'][_idx], 'value': _col[_idx]}
+                break
+        #: If no non-null values for an MSID are found, don't add to dataset.
+    return dataset
