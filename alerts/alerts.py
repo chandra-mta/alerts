@@ -24,18 +24,6 @@ from pprint import pformat
 from email.message import EmailMessage
 from subprocess import Popen, PIPE
 
-def _message_wrapper(func):
-    """
-    Wrap email message content with uniform content.
-    """
-    def _wrapper(self, *args, **kwargs):
-        content = f"{self.name} Violation Occured\n"
-        content += func(self,*args, **kwargs)
-        content += f"{self.action}\n"
-        content += f"{os.environ.get('USER')}@{os.environ.get('HOST')}"
-        return content
-    return _wrapper
-
 class Alert(object):
     """
     Base Alert class
@@ -73,8 +61,13 @@ class Alert(object):
         msg["From"] = "MTA"
         msg['To'] = self.email
         msg['Subject'] = self.subject
+        #: Wrap email message content with uniform content.
+        _content = f"{self.name} Violation Occured\n"
+        _content += f"{self.message}\n"
+        _content += f"{self.action}\n"
+        _content += f"{os.environ.get('USER')}@{os.environ.get('HOST')}"
 
-        msg.set_content(self.message)
+        msg.set_content(_content)
         p = Popen(["/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
         (out, error) = p.communicate(msg.as_bytes())
 
