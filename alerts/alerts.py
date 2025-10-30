@@ -19,6 +19,7 @@ Disabling a radiation alert:
     - or edit alerts.json and change manual_disable from 0 to 1.
 """
 import os
+import time
 #: Formatting
 from pprint import pformat
 from email.message import EmailMessage
@@ -33,6 +34,7 @@ class Alert(object):
                  name,
                  email,
                  action,
+                 check_func,
                  message='',
                 ):
         self.mode = mode
@@ -42,14 +44,39 @@ class Alert(object):
         self.logfile = f"{name}.log"
         self.email = email
         self.action = action
-        self.message = message
+        self.check_func = check_func
         self.set_subject()
+        self.set_message(message)
 
     def set_subject(self):
         if self.mode == 'test':
             self.subject = f'TEST {self.name}'
         else:
             self.subject = self.name
+    
+    def set_message(self,_message):
+        #: Wrap email message content with uniform content.
+        _content = f"{self.name} Violation Occured\n"
+        _content += f"{_message}\n"
+        _content += f"{self.action}\n"
+        _content += f"{os.environ.get('USER')}@{os.environ.get('HOST')}"
+        self.message = _content
+    
+
+    def check(self, **check_kwargs):
+        """
+        Run the alert's check function to determine trigger, message, and send alert.
+        """
+        _is_triggered, _message = self.check_func(**check_kwargs)
+        if _is_triggered:
+            self.set_message(_message)
+            if os.path.exists(self.logfile):
+                remove_after_24h(self.logfile)
+            else:
+                with open(self.logfile, "w") as fh:
+                    fh.write(self.message)
+                self.send_alert()
+
 
 
     def send_alert(self):
@@ -61,13 +88,7 @@ class Alert(object):
         msg["From"] = "MTA"
         msg['To'] = self.email
         msg['Subject'] = self.subject
-        #: Wrap email message content with uniform content.
-        _content = f"{self.name} Violation Occured\n"
-        _content += f"{self.message}\n"
-        _content += f"{self.action}\n"
-        _content += f"{os.environ.get('USER')}@{os.environ.get('HOST')}"
-
-        msg.set_content(_content)
+        msg.set_content(self.message)
         p = Popen(["/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
         (out, error) = p.communicate(msg.as_bytes())
 
@@ -82,3 +103,14 @@ class Alert(object):
     def __str__(self):
         return pformat(self.__dict__)
     
+def remove_after_24h(fname):
+    """
+    Remove alert lock file after 24 hours
+    Not all alerts will have a lock?
+    dumps have one lock for a group of alerts?
+    """
+    t_created = os.stat(fname) # sec
+    t_now = time.time() # sec
+    dt = t_now - t_created.st_mtime
+    if dt > 24 * 3600:
+        os.remove(fname)
