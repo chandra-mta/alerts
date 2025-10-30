@@ -59,7 +59,7 @@ class Alert(object):
         _content = f"{self.name} Violation Occured\n"
         _content += f"{_message}\n"
         _content += f"{self.action}\n"
-        _content += f"{os.environ.get('USER')}@{os.environ.get('HOST')}"
+        _content += f"This message was sent by {os.environ.get('USER')}@{os.environ.get('HOST')}"
         self.message = _content
     
 
@@ -85,7 +85,7 @@ class Alert(object):
         """
         msg = EmailMessage()
 
-        msg["From"] = "MTA"
+        msg["From"] = "MTA_Alerts"
         msg['To'] = self.email
         msg['Subject'] = self.subject
         msg.set_content(self.message)
