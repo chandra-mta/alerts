@@ -58,8 +58,8 @@ class Alert(object):
         self.message = message
 
     def set_subject(self):
-        if self.mode == 'test':
-            self.subject = f'TEST {self.name}'
+        if self.mode in ('test', 'sim'):
+            self.subject = f'{self.mode.upper()} {self.name}'
         else:
             self.subject = self.name
     
