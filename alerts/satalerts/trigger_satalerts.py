@@ -1,28 +1,49 @@
 """
 Functions for determining alert triggers
 
-:NOTE: Alert functions are custom algorithms as needed for determining if an alert should trigger,
-    or what the notification message should be. As such, they are scoped outside of an Alert class instance.
-    This means that all Alert instance attributes of importance in teh check must be passed to
-    the function as a keyword argument.
+:Check Functions: Alerts are instatiated with a check function to handle the individual algorithmic
+    calculations needed to record the trigger of an alert, or edit the notification of a
 
 """
+import os
+from cxotime import CxoTime
 
-TRIGGER_SEQUENCE = (
-    pcadmode,
-    fmt,
-) #: Tuple of Function handles to run for checking all the satalerts.
+def delay(instance, step):
+    """
+    Increment or decrement the delay count of alert instance by pos. or neg. step.
+    If delay count satisfies limit, nullify count and trigger alert.
 
-def pcadmode(data):
+    All delay counts operate within a range of [0, delay_limit -1] and mark the alert as triggered.
+    If the delay count reaches zero again and the alert is stored as alerting, the log file is cleared.
     """
-    Include Comm Information?
+    instance.delay_count += step
+    if instance.delay_count >= instance.delay_limit:
+        #: Record alert trigger. Alert notification will handle log file creation.
+        instance.is_triggered = True
+        instance.delay_count = instance.delay_limit - 1
+    elif instance.delay_count <= 0:
+        #: Alert nullified. Delete log file if one exists.
+        if os.path.exists(instance.logfile):
+            os.remove(instance.logfile)
+        instance.delay_count = 0
+    #: Otherwise, proceed with delay count stepped as normal.
+
+#
+# --- Trigger algorithm functions for alert instances. Pass as check_func attribute,
+# --- and ensure function operates on native alert instance attributes.
+#
+
+def pcadmode(instance, aopcadmd):
     """
-    message = f"Chandra realtime telemetry shows PCADMODE {data.get('value')} at {data.get('cxotime')}\n"
-    if data.get('value') == "NSUN":
-        is_triggered = True
+    Checks AOPCADMD MSID for violation od PCAD MODE
+
+    TODO Include Comm Information?
+    """
+    instance.message = f"Chandra realtime telemetry shows PCADMODE {aopcadmd.get('value')} at {CxoTime(aopcadmd.get('cxotime')).date}\n"
+    if aopcadmd.get('value') == "NSUN":
+        delay(instance, 1) #: Increment Delay Counter
     else:
-        is_triggered = False
-    return is_triggered, message
+        delay(instance, -1) #: Decrement Delay Counter
 
 def fmt(sat_dataset):
     pass
