@@ -20,6 +20,7 @@ Disabling a radiation alert:
 """
 import os
 import time
+import json
 #: Formatting
 from pprint import pformat
 from email.message import EmailMessage
@@ -133,3 +134,26 @@ def remove_after_24h(fname):
     dt = t_now - t_created.st_mtime
     if dt > 24 * 3600:
         os.remove(fname)
+
+def read_delay_status():
+    """
+    Read in delay count and limit. Used in constructing alert instances
+    
+    - TODO Implement Config handling
+    - TODO Implement handling in case wait counters are removed. 
+        Should have core config of which alerts have a delay counter.
+    """
+    with open("delay_status.json") as f:
+        delay_status = json.load(f)
+    return delay_status
+
+def write_delay_status(alert_set):
+    """
+    Write out delay status for all al;erts with delays
+    """
+    delay_status = {}
+    for alert in alert_set:
+        if alert.is_delayed:
+            delay_status[alert.name] = {'count': alert.delay_count, 'limit': alert.delay_limit}
+    with open("delay_status.json", 'w') as f:
+        json.dump(delay_status, f, indent = 4)
