@@ -35,7 +35,7 @@ def delay(instance, step):
 
 def pcadmode(instance, aopcadmd):
     """
-    Checks AOPCADMD MSID for violation od PCAD MODE
+    Checks AOPCADMD MSID for violation of PCAD MODE
 
     TODO Include Comm Information?
     """
@@ -45,8 +45,13 @@ def pcadmode(instance, aopcadmd):
     else:
         delay(instance, -1) #: Decrement Delay Counter
 
-def fmt(sat_dataset):
-    pass
+def fmt(instance, ccsdstmf):
+    """
+    Check CCSDSTMF for violation of format mode
+    """
+    instance.message = f"Chandra realtime telemetry shows CCSDSTMF {ccsdstmf.get('value')} at {CxoTime(ccsdstmf.get('cxotime')).date}\n"
+    if ccsdstmf.get('value') == "FMT5":
+        instance.is_triggered = True
 
 def run_all_satalerts():
     pass
