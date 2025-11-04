@@ -71,7 +71,8 @@ def _find_tl_files(CONFIG):
     current = {}
     preceding = {}
     for _file in _list:
-        _category = _file.split("_")[0].split('chandra')[1]
+        _basename = os.path.basename(_file)
+        _category = _basename.split("_")[0].split('chandra')[1]
         _previous_file = current.get(_category)
         if _previous_file is None:
             #: Not been identified yet.
@@ -90,7 +91,6 @@ def _select_tl_files(current):
     stale = {}
     _now = datetime.now().timestamp()
     for _category, _file in current.items():
-        print(_file, _now - os.path.getmtime(_file))
         if (_now - os.path.getmtime(_file)) <= core.STALE_THRESHOLD:
             process[_category] = _file
         else:
