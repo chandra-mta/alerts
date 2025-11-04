@@ -19,16 +19,54 @@ def load_config(mode):
     config = _CONFIGS[mode]
     return config
 
-def run_alert_check():
-    pass
+def pull_tl_data(config):
+    current = alerts.satalerts.telemetry.get_tl_files(config)
+    #: Only testing the pcadmode and fmt alerts
+    data = {}
+    if current.get('PCAD') is not None:
+        pcad_table = alerts.satalerts.telemetry.read_telemetry_file(current.get('PCAD'))
+        pcad = alerts.satalerts.telemetry.latest_telem_value(pcad_table)
+        data.update(pcad)
+    if current.get('CCDM') is not None:
+        ccdm_table = alerts.satalerts.telemetry.read_telemetry_file(current.get('CCDM'))
+        ccdm = alerts.satalerts.telemetry.latest_telem_value(ccdm_table)
+        data.update(ccdm)
+    return data
+
+
+def run_alert_check(config):
+    delay_status = alerts.alerts.read_delay_status()
+    data = pull_tl_data(config)
+    action = "Check email for info.\nTelecon on 609-829-8540 PIN 132 194 285 : meet.google.com/fmc-gusj-eos\nA reminder, this may be connected to the voice loops at OCC\n"
+    
+    x = alerts.alerts.Alert(
+        mode= 'sim',
+        name = 'pcadmode',
+        email = "william.aaron@cfa.harvard.edu",
+        action = action,
+        check_func = alerts.satalerts.trigger_satalerts.pcadmode,
+        is_delayed = True,
+        delay_count = delay_status.get('pcadmode').get('count'),
+        delay_limit = delay_status.get('pcadmode').get('limit')
+    )
+
+    y = alerts.alerts.Alert(
+        mode= 'sim',
+        name = 'fmt',
+        email = "william.aaron@cfa.harvard.edu",
+        action = action,
+        check_func = alerts.satalerts.trigger_satalerts.fmt
+    )
+
+    x.check(aopcadmd = data["AOPCADMD"])
+    y.check(ccsdstmf = data["CCSDSTMF"])
+
 
 if __name__ == "__main__":
     #: Determine Config Section
     args = get_options()
     config = load_config(args.mode)
-    #: can I edit the config temporarily?
-    #config['TELEMETRY_FILES_DIR'] = os.getcwd()
-    for k,v in config.items():
-        print(k,v)
-    current = alerts.satalerts.telemetry.get_tl_files(config)
-    print(current)
+    #: Edit config option
+    config['TELEMETRY_FILES_DIR'] = os.getcwd()
+    run_alert_check(config)
+    

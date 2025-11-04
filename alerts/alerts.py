@@ -143,8 +143,12 @@ def read_delay_status():
     - TODO Implement handling in case wait counters are removed. 
         Should have core config of which alerts have a delay counter.
     """
-    with open("delay_status.json") as f:
-        delay_status = json.load(f)
+    try:
+        with open("delay_status.json") as f:
+            delay_status = json.load(f)
+    except:
+        print("error in reading delay status json. using default.")
+        delay_status = {'pcadmode': {'count': 0, 'limit': 3}}
     return delay_status
 
 def write_delay_status(alert_set):
