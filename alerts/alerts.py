@@ -36,6 +36,10 @@ class Alert(object):
                  action,
                  check_func,
                  message='',
+                 is_delayed = False,
+                 delay_count = 0,
+                 delay_limit = 3,
+                 is_triggered = False,
                 ):
         self.mode = mode
         self.name = name
@@ -45,34 +49,49 @@ class Alert(object):
         self.email = email
         self.action = action
         self.check_func = check_func
+        #: Delay / Wait attributes. All classes have delay capabilities but not all use them
+        self.is_delayed = is_delayed
+        self.delay_count = delay_count
+        self.delay_limit = delay_limit
+        self.is_triggered = is_triggered
         self.set_subject()
-        self.set_message(message)
+        self.message = message
 
     def set_subject(self):
-        if self.mode == 'test':
-            self.subject = f'TEST {self.name}'
+        if self.mode in ('test', 'sim'):
+            self.subject = f'{self.mode.upper()} {self.name}'
         else:
             self.subject = self.name
     
-    def set_message(self,_message):
+    def wrap_message(self):
         #: Wrap email message content with uniform content.
         _content = f"{self.name} Violation Occured\n"
-        _content += f"{_message}\n"
+        _content += f"{self.message}\n"
         _content += f"{self.action}\n"
-        _content += f"{os.environ.get('USER')}@{os.environ.get('HOST')}"
+        _content += f"This message was sent by {os.environ.get('USER')}@{os.environ.get('HOST')}"
         self.message = _content
     
-
-    def check(self, **check_kwargs):
+    def run_check_func(self, **kwargs):
+        """
+        Run the alert's instantiated check function
+        """
+        return self.check_func(self, **kwargs)
+    
+    def check(self, **kwargs):
         """
         Run the alert's check function to determine trigger, message, and send alert.
         """
-        _is_triggered, _message = self.check_func(**check_kwargs)
-        if _is_triggered:
-            self.set_message(_message)
+        #: Ensure trigger boolean only true if check passes. Not from alternative method handling
+        self.is_triggered = False
+        self.run_check_func(**kwargs)
+        if self.is_triggered:
             if os.path.exists(self.logfile):
-                remove_after_24h(self.logfile)
+                #: Alert already triggered. Process lock clearing if needed.
+                if not self.is_delayed:
+                    remove_after_24h(self.logfile)
             else:
+                #: Alert triggered
+                self.wrap_message()
                 with open(self.logfile, "w") as fh:
                     fh.write(self.message)
                 self.send_alert()
@@ -85,7 +104,7 @@ class Alert(object):
         """
         msg = EmailMessage()
 
-        msg["From"] = "MTA"
+        msg["From"] = "MTA_Alerts"
         msg['To'] = self.email
         msg['Subject'] = self.subject
         msg.set_content(self.message)
