@@ -31,12 +31,12 @@ def pull_tl_data(config):
         ccdm_table = alerts.satalerts.telemetry.read_telemetry_file(current.get('CCDM'))
         ccdm = alerts.satalerts.telemetry.latest_telem_value(ccdm_table)
         data.update(ccdm)
-    return data
+    return data, current
 
 
 def run_alert_check(config):
     delay_status = alerts.alerts.read_delay_status()
-    data = pull_tl_data(config)
+    data, current = pull_tl_data(config)
     action = "Check email for info.\nTelecon on 609-829-8540 PIN 132 194 285 : meet.google.com/fmc-gusj-eos\nA reminder, this may be connected to the voice loops at OCC\n"
     
     x = alerts.alerts.Alert(
@@ -60,6 +60,20 @@ def run_alert_check(config):
 
     x.check(aopcadmd = data["AOPCADMD"])
     y.check(ccsdstmf = data["CCSDSTMF"])
+
+    alert_set = (x,y)
+    alerts.alerts.write_delay_status(alert_set)
+
+    # copy log files if they are present for examination since they are removed in regular processing
+    
+    if os.path.exists(x.logfile):
+        if not os.path.exists(f"{x.logfile}~"):
+            os.system(f"cp {current.get('PCAD')} ./")
+            os.system(f"cp {x.logfile} {x.logfile}~")
+    if os.path.exists(y.logfile):
+        if not os.path.exists(f"{y.logfile}~"):
+            os.system(f"cp {current.get('CCDM')} ./")
+            os.system(f"cp {y.logfile} {y.logfile}~")
 
 
 if __name__ == "__main__":
