@@ -57,9 +57,10 @@ def run_alert_check(config):
         action = action,
         check_func = alerts.satalerts.trigger_satalerts.fmt
     )
-
-    x.check(aopcadmd = data["AOPCADMD"])
-    y.check(ccsdstmf = data["CCSDSTMF"])
+    if data.get("AOPCADMD") is not None:
+        x.check(aopcadmd = data["AOPCADMD"])
+    if data.get("CCSDSTMF") is not None:
+        y.check(ccsdstmf = data["CCSDSTMF"])
 
     alert_set = (x,y)
     alerts.alerts.write_delay_status(alert_set)
